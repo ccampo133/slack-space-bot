@@ -1,11 +1,4 @@
-"""A setuptools based setup module.
-
-See:
-https://packaging.python.org/en/latest/distributing.html
-https://github.com/pypa/sampleproject
-"""
-
-from setuptools import setup, find_packages
+from setuptools import setup
 from codecs import open
 from os import path
 
@@ -49,7 +42,7 @@ setup(
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
-        ],
+    ],
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
@@ -59,7 +52,12 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['slacker>=0.5.7'],
+    install_requires=[
+        'pyslack>=0.1.3',
+        'slacker>=0.5.7',
+        'docopt>=0.6.1',
+        'beautifulsoup4>=4.3.2'
+    ],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -68,7 +66,7 @@ setup(
     extras_require={
         'dev': ['check-manifest'],
         'test': ['coverage'],
-        },
+    },
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
