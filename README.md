@@ -7,5 +7,3 @@ A Slack bot that posts cool stuff about space.
 Start a virtual environment: 
 
     $ virtualenv venv
-    
-gi
