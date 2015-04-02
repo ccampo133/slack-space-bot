@@ -8,9 +8,9 @@
   -h --help                       Show this screen.
 """
 import json
-import re
 import urllib2
 import datetime
+import re
 
 from docopt import docopt
 from slacker import Slacker
@@ -25,31 +25,26 @@ if __name__ == '__main__':
     response = urllib2.urlopen('http://apod.nasa.gov/apod/astropix.html')
     html = response.read()
     soup = BeautifulSoup(html)
-
     title = soup.b.string
     img_url = 'http://apod.nasa.gov/%s' % str(soup.img['src'])
+    text = re.findall('Explanation:(.*?)Tomorrow', soup.get_text(), re.DOTALL | re.MULTILINE)[0]
+    text = str(text.replace('\n', ' ').rstrip().lstrip())
+    text = re.sub("\s\s+", " ", text)  # removes double spaces
 
     attachments = json.dumps([{
-        'title': title,
-        'text': '',
-        'image_url': img_url,
-        'title_link': 'http://apod.nasa.gov/apod/astropix.html',
-        'author_name': '@apod',
-        'author_link': 'https://twitter.com/apod',
-        'author_icon': 'https://pbs.twimg.com/profile_images/19829782/apod_normal.png'
-    }])
+                                  'title': title,
+                                  'text': text,
+                                  'image_url': img_url,
+                                  'title_link': 'http://apod.nasa.gov/apod/astropix.html',
+                                  'author_name': '@apod',
+                                  'author_link': 'https://twitter.com/apod',
+                                  'author_icon': 'https://pbs.twimg.com/profile_images/19829782/apod_normal.png'
+                              }])
 
-    print(attachments)
-
-    # Slacker
-    slackerClient = Slacker(token)
-    slackerClient.chat.post_message(channel,
-                                    'Astronomy Picture of the Day - ' + datetime.datetime.now().strftime("%a %B %d, %Y"),
-                                    username='SpaceBot',
-                                    icon_url='http://i.imgur.com/xm4a5PP.jpg',
-                                    attachments=attachments)
-
-    # PySlack
-    # slack.api_token = token
-    # slack.chat.post_message(channel, 'Hello from PySlack', username='SpaceBot')
-
+    # Slack client (using the 'Slacker' library)
+    slack = Slacker(token)
+    slack.chat.post_message(channel,
+                            'Astronomy Picture of the Day - ' + datetime.datetime.now().strftime("%a %B %d, %Y"),
+                            username='SpaceBot',
+                            icon_url='http://i.imgur.com/xm4a5PP.jpg',
+                            attachments=attachments)
