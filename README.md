@@ -1,4 +1,5 @@
 # Slack Space Bot
+[![Build Status](https://travis-ci.org/ccampo133/slack-spacebot.svg?branch=master)](https://travis-ci.org/ccampo133/slack-spacebot)
 
 A Slack bot that posts cool stuff about space. Right now it only does [APOD](http://apod.nasa.gov/apod/astropix.html). 
 Maybe it will do more in the future (hopefully!).
