@@ -53,10 +53,10 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'pyslack>=0.1.3',
         'slacker>=0.5.7',
         'docopt>=0.6.1',
-        'beautifulsoup4>=4.3.2'
+        'beautifulsoup4>=4.3.2',
+        'schedule>=0.3.1'
     ],
 
     # List additional groups of dependencies here (e.g. development
