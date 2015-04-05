@@ -28,7 +28,7 @@ if __name__ == '__main__':
     title = soup.b.string
     img_url = 'http://apod.nasa.gov/%s' % str(soup.img['src'])
     text = re.findall('Explanation:(.*?)Tomorrow', soup.get_text(), re.DOTALL | re.MULTILINE)[0]
-    text = str(text.replace('\n', ' ').rstrip().lstrip())
+    text = text.replace('\n', ' ').rstrip().lstrip()
     text = re.sub("\s\s+", " ", text)  # removes double spaces
 
     attachments = json.dumps([{
