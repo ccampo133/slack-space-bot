@@ -30,6 +30,29 @@ author_link = 'https://twitter.com/apod'
 author_icon = 'https://pbs.twimg.com/profile_images/19829782/apod_normal.png'
 spacebot_icon_url = 'http://i.imgur.com/xm4a5PP.jpg'
 
+def main():
+    args = docopt(__doc__)
+    token = args['--token']
+    channel = args['--chan']
+    run_time = args['--time']
+    log_file = args['--file']
+    log_level = args['--level']
+
+    # Set up logging stuff
+    numeric_level = getattr(logging, log_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % log_level)
+    logging.basicConfig(filename=log_file, level=numeric_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.getLogger().addHandler(logging.StreamHandler())  # Add logger to stderr
+
+    slack = Slacker(token)  # Slack client (using the 'Slacker' library)
+    schedule.every().day.at(run_time).do(send_message, slack, channel)
+
+    logging.info("SpaceBot successfully scheduled to run every day at %s" % run_time)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
 
 def get_apod_data():
     response = urllib2.urlopen(apod_pix_url)
@@ -61,27 +84,3 @@ def send_message(slack_client, chan):
     slack_client.chat.post_message(chan, msg_title, username='SpaceBot', icon_url=spacebot_icon_url,
                                    attachments=attachments)
     logging.info('Sent message: chan = %s, msg_title = %s, attachments = %s' % (chan, msg_title, attachments))
-
-
-if __name__ == '__main__':
-    args = docopt(__doc__)
-    token = args['--token']
-    channel = args['--chan']
-    run_time = args['--time']
-    log_file = args['--file']
-    log_level = args['--level']
-
-    # Set up logging stuff
-    # TODO - add timestamps and more advanced logging configuration
-    numeric_level = getattr(logging, log_level.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % log_level)
-    logging.basicConfig(filename=log_file, level=numeric_level)
-
-    slack = Slacker(token)  # Slack client (using the 'Slacker' library)
-    schedule.every().day.at(run_time).do(send_message, slack, channel)
-
-    logging.info("SpaceBot is scheduled to run every day at %s" % run_time)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)

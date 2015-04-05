@@ -9,15 +9,16 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='slack-space-bot',
+    name='slack-spacebot',
     version='0.0.1',
     description='A Slack bot that posts cool stuff about space.',
     long_description=long_description,
-    keywords='slack bot space',
-    url='https://github.com/ccampo133/slack-space-bot',
+    keywords='slack bot space spacebot',
+    url='https://github.com/ccampo133/slack-spacebot',
     author='Chris Campo',
     author_email='ccampo.progs@gmail.com',
     license='MIT',
+    packages=['spacebot'],
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
@@ -78,9 +79,7 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    # entry_points={
-    #     'console_scripts': [
-    #         'sample=sample:main',
-    #         ],
-    #     },
+    entry_points={
+        'console_scripts': ['spacebot=spacebot.spacebot:main']
+    },
 )
