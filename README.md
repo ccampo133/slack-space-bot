@@ -41,7 +41,7 @@ SpaceBot will log all program output to stderr. Consider specifying a log file.
 
 Refer to the full usage documentation for more details (or just look at `spacebot.py`):
 
-   $ spacebot --help.
+    $ spacebot --help.
    
 Once you have SpaceBot running in a terminal, just leave it running until you want to stop it with CTRL+C or `kill` or
 whatever your method of choice is. Alternatively you can run it in the background:
