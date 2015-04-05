@@ -1,9 +1,9 @@
-Slack Space Bot
+# Slack Space Bot
 
 A Slack bot that posts cool stuff about space. Right now it only does [APOD](http://apod.nasa.gov/apod/astropix.html). 
 Maybe it will do more in the future.
 
-# Installation
+## Installation
 
 To install the latest build from `master`, you can install using `pip`:
 
@@ -27,7 +27,7 @@ Then use xargs to do the removal of the install files listed in `files.txt`:
     
 Really though, just use `pip`.
 
-# Usage
+## Usage
 
 SpaceBot is a typical command line program. Once installed, you will have the command `spacebot` available for use. 
 
@@ -50,7 +50,7 @@ whatever your method of choice is. Alternatively you can run it in the backgroun
 
 That's about it for now :)
 
-# Development
+## Development
 
 Start a [virtual environment](https://virtualenv.pypa.io/en/latest/): 
 
