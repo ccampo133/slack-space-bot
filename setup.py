@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='slack-spacebot',
-    version='0.0.1',
+    version='0.1.0',
     description='A Slack bot that posts cool stuff about space.',
     long_description=long_description,
     keywords='slack bot space spacebot',
@@ -28,8 +28,8 @@ setup(
         'Development Status :: 3 - Alpha',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Developers',
-        'Topic :: Software Development :: Build Tools',
+        'Intended Audience :: End Users/Desktop',
+        'Topic :: Communications :: Chat',
 
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',
@@ -54,10 +54,10 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'slacker>=0.5.7',
-        'docopt>=0.6.1',
-        'beautifulsoup4>=4.3.2',
-        'schedule>=0.3.1'
+        'slacker==0.5.7',
+        'docopt==0.6.1',
+        'beautifulsoup4==4.3.2',
+        'schedule==0.3.1'
     ],
 
     # List additional groups of dependencies here (e.g. development
