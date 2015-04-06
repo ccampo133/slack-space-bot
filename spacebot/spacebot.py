@@ -5,7 +5,8 @@
   Options:
   -c CHANNEL --chan=CHANNEL   The Slack channel or group ID.
   -t TOKEN --token=TOKEN      Your Slack API token.
-  -T --time=TIME              The time of day to run (in 24 hour format HH:mm, e.g. 11:00). [default: 12:00]
+  -T --time=TIME              The time of day to run (in 24 hour format HH:mm, e.g. 11:00). Ignoring
+                              this option will cause SpaceBot to run now, and only once.
   -f --file=LOGFILE           The file to output all logging info. [default: spacebot.log]
   -l --level=LEVEL            The logging level: DEBUG, INFO, WARNING, ERROR, or CRITICAL. [default: INFO]
   -h --help                   Show this screen.
@@ -46,12 +47,15 @@ def main():
     logging.getLogger().addHandler(logging.StreamHandler())  # Add logger to stderr
 
     slack = Slacker(token)  # Slack client (using the 'Slacker' library)
-    schedule.every().day.at(run_time).do(send_message, slack, channel)
 
-    logging.info("SpaceBot successfully scheduled to run every day at %s" % run_time)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    if run_time is not None:
+        schedule.every().day.at(run_time).do(send_message, slack, channel)
+        logging.info("SpaceBot successfully scheduled to run every day at %s" % run_time)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+    else:
+        send_message(slack, channel)
 
 
 def get_apod_data():
