@@ -54,9 +54,8 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'slacker==0.5.7',
         'docopt==0.6.1',
-        'beautifulsoup4==4.3.2',
+        'requests==2.6.0',
         'schedule==0.3.1'
     ],
 
