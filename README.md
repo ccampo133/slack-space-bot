@@ -36,9 +36,14 @@ SpaceBot is a typical command line program. Once installed, you will have the co
 your terminal.
 
 To have SpaceBot run immediately, and post to the chat with channel (or private group) ID `CHANNEL` (this ID can be 
-retrieved from the [Slack REST API](https://api.slack.com/web)), using the Slack API token `TOKEN`, do:
+retrieved from the [Slack REST API](https://api.slack.com/web)), using the Slack API token `TOKEN`, and your 
+data.nasa.gov API key `KEY` (apply for an API key at https://data.nasa.gov/developer/external/planetary/#apply-for-an-api-key), 
+do:
  
-    $ spacebot -c CHANNEL -t TOKEN
+    $ spacebot -c CHANNEL -t TOKEN -k KEY
+
+Note that while the `-k` flag is technically optional (it will default to `DEMO_KEY`), it is unknown if this will 
+continue to be supported by the data.nasa.gov folks themselves.
 
 Additionally, you can have SpaceBot run on a schedule, once per day, at your specified time. The time of day should be
 in 24 hour `HH:mm` format, e.g. 13:00 for 1 PM. To specify the time of day SpaceBot runs, use the `-T --time` option:
@@ -50,9 +55,9 @@ line runs SpaceBot every day at 11:00 AM:
 
     0 11 * * * spacebot -c CHANNEL -t TOKEN
 
-Other parameters such as the logging level and log file can be set at runtime as well. By default, SpaceBot will log 
-all program output to stderr. Consider specifying a log file. Refer to the full usage documentation for more details 
-(or just look at `spacebot.py`):
+Other parameters such as the logging level, log file, and APOD picture data can be set at runtime as well. By default, 
+SpaceBot will log all program output to stderr. Consider specifying a log file. Refer to the full usage documentation 
+for more details (or just look at `spacebot.py`):
 
     $ spacebot --help.
    
@@ -68,6 +73,7 @@ That's about it for now :)
 Start a [virtual environment](https://virtualenv.pypa.io/en/latest/): 
 
     $ virtualenv venv
+    $ source venv/bin/activate  # Note: Bash users may have to use . if source is not available
 
 Install the requirements:
 
