@@ -1,2 +1,2 @@
-from .spacebot import main
+from .bot import main
 main()
