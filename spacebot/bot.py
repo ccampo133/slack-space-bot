@@ -1,5 +1,5 @@
 """Usage:
-  spacebot (-c CHANNEL) (-t TOKEN) [-k KEY] [-t TIME] [-f LOGFILE] [-l LEVEL]
+  spacebot (-c CHANNEL) (-t TOKEN) [-k KEY] [-T TIME] [-f LOGFILE] [-l LEVEL]
   spacebot (-h | --help)
 
   Options:
@@ -8,7 +8,6 @@
   -k --key=KEY                Your NASA API key (apply for one at https://data.nasa.gov/developer/external/planetary/#apply-for-an-api-key)
                               [default: DEMO_KEY].
   -T --apod-time=TIME         The time of day to post automatically post APOD (in 24 hour format HH:mm, e.g. 11:00).
-                              [default: None]
   -f --file=LOGFILE           The file to output all logging info. [default: spacebot.log]
   -l --level=LEVEL            The logging level: DEBUG, INFO, WARNING, ERROR, or CRITICAL. [default: INFO]
   -h --help                   Show this screen.
@@ -16,6 +15,7 @@
 import json
 import time
 import logging
+import sys
 
 import re
 from docopt import docopt
@@ -47,7 +47,10 @@ def main():
     # Start the bot
     slack = SlackClient(token)
     bot = SpaceBot(slack, channel, key, apod_time)
-    bot.run()
+    try:
+        bot.run()
+    except KeyboardInterrupt:
+        sys.exit(0)
 
 
 class SpaceBot:
@@ -60,7 +63,7 @@ class SpaceBot:
 
     def run(self):
         # Set up cron jobs
-        if self.cron_time:
+        if self.cron_time is not None:
             # schedule.every().day.at(self.cron_time).do(self.send_message,
             #                                            *marsweather.get_weather_text_and_attachments())
             # schedule.every().day.at(self.cron_time).do(self.send_message,
@@ -108,6 +111,8 @@ class SpaceBot:
         elif command == "iss":
             text, attachments = iss.get_iss_text_and_attachments()
             self.send_message(text, attachments)
+        elif command == "help":
+            self.send_help_message()
         else:
             user = json.loads(self.slack_client.api_call("users.info", user=event["user"]))["user"]
             name = user["profile"]["first_name"]
@@ -120,3 +125,11 @@ class SpaceBot:
                                    channel=self.channel,
                                    text=text,
                                    attachments=json.dumps([attachments]))
+
+    def send_help_message(self):
+        text = "Available commands (case insensitive):\n\n" \
+               "*{name} APOD [YYYY-MM-DD]:* Displays the APOD for the given date (optional; defaults to today's APOD)\n" \
+               "*{name} ISS:* Displays information about the current location of the International Space Station.\n" \
+               "*{name} Mars Weather:* Displays the current Martian weather report from the Curiosity rover\n" \
+               "*{name} help:* Shows this.".format(name=consts.SPACEBOT_USERNAME)
+        self.send_message(text)
