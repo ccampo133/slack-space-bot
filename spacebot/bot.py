@@ -73,6 +73,7 @@ class SpaceBot:
             while True:
                 schedule.run_pending()
                 for event in self.slack_client.rtm_read():
+                    self.log.debug("Received event: %s", str(event))
                     self.process(event)
                 time.sleep(0.5)
         else:
@@ -81,8 +82,8 @@ class SpaceBot:
     def process(self, event):
         # Ignore events that aren't messages addressing SpaceBot
         if event["type"] != "message" \
-                or event["channel"] != self.channel \
-                or not event["text"].lower().startswith(consts.SPACEBOT_USERNAME.lower()):
+                or ("channel" in event and event["channel"] != self.channel) \
+                or ("text" in event and not event["text"].lower().startswith(consts.SPACEBOT_USERNAME.lower())):
             return
 
         command = re.sub(consts.SPACEBOT_USERNAME.lower(), "", event["text"].lower()).lstrip()
