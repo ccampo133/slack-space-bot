@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='slack-spacebot',
-    version='0.3.0',
+    version='0.3.1',
     description='A Slack bot that posts cool stuff about space.',
     long_description=long_description,
     keywords='slack bot space spacebot',
@@ -18,7 +18,7 @@ setup(
     author='Chris Campo',
     author_email='ccampo.progs@gmail.com',
     license='MIT',
-    packages=['spacebot'],
+    packages=['spacebot', 'spacebot.apis', 'spacebot.util'],
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
@@ -56,7 +56,8 @@ setup(
         'docopt==0.6.1',
         'requests==2.6.0',
         'schedule==0.3.1',
-        'slackclient==0.15'
+        'slackclient==0.15',
+        'websocket-client==0.32.0'
     ],
 
     # List additional groups of dependencies here (e.g. development
