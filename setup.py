@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='slack-spacebot',
-    version='0.3.2',
+    version='0.3.3',
     description='A Slack bot that posts cool stuff about space.',
     long_description=long_description,
     keywords='slack bot space spacebot',
@@ -53,11 +53,11 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'docopt==0.6.1',
-        'requests==2.6.0',
-        'schedule==0.3.1',
-        'slackclient==0.15',
-        'websocket-client==0.32.0'
+        'docopt>=0.6.1',
+        'requests>=2.6.0',
+        'schedule>=0.3.1',
+        'slackclient>=0.15',
+        'websocket-client>=0.32.0'
     ],
 
     # List additional groups of dependencies here (e.g. development
