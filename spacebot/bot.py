@@ -25,6 +25,7 @@ from spacebot import consts
 from spacebot.apis import apod
 from spacebot.apis import marsweather
 from spacebot.apis import iss
+from spacebot.util import utils
 
 
 def main():
@@ -90,7 +91,15 @@ class SpaceBot:
 
         if command.startswith("apod"):
             apod_date = re.sub("apod", "", command).lstrip()
-            date = time.strftime("%Y-%m-%d") if not apod_date else apod_date
+            if apod_date:
+                try:
+                    utils.validate_date(apod_date)
+                except ValueError:
+                    self.send_message("Incorrect date format. Should be YYYY-MM-DD")
+                    return
+                date = apod_date
+            else:
+                date = time.strftime("%Y-%m-%d")
             text, attachments = apod.get_apod_text_and_attachments(self.nasa_api_key, date)
             self.send_message(text, attachments)
         elif command == "mars weather":
