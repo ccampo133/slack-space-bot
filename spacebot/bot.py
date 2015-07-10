@@ -64,21 +64,9 @@ class SpaceBot:
     def run(self):
         # Set up cron jobs
         if self.cron_time is not None:
-            # schedule.every().day.at(self.cron_time).do(self.send_message,
-            #                                            *marsweather.get_weather_text_and_attachments())
-            # schedule.every().day.at(self.cron_time).do(self.send_message,
-            #                                            *iss.get_iss_text_and_attachments())
             schedule.every().day.at(self.cron_time).do(self.send_message,
                                                        *apod.get_apod_text_and_attachments(self.nasa_api_key,
                                                                                            time.strftime("%Y-%m-%d")))
-
-        # Check if the ISS is over-head every minute
-        def send_iss_message():
-            if iss.is_iss_overhead(28.42, 81.30):
-                self.send_message("The International Space Station is currently over-head!")
-
-        schedule.every().minute.do(send_iss_message)
-
         # Initialize the WebSocket API connection
         if self.slack_client.rtm_connect():
             while True:

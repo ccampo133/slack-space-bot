@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 # Gets the position of the ISS from https://api.wheretheiss.at/v1/satellites/25544
 def get_iss_data():
-    r = requests.get("https://api.wheretheiss.at/v1/satellites/25544")
+    r = requests.get("https://api.wheretheiss.at/v1/satellites/25544", verify=False)
     assert r.status_code == 200
     response = r.json()
     log.debug("ISS location response: %s", response)
@@ -38,6 +38,7 @@ def get_iss_text_and_attachments():
 
 # Determines if the ISS is overhead by computing the great circle distance
 # between its latitude and longitude and a given latitude and longitude.
+# TODO: verify this calculation -ccampo 2015-07-10
 def is_iss_overhead(lat, lon):
     iss_data = get_iss_data()
     lat1 = radians(lat)
