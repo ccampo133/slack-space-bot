@@ -56,7 +56,8 @@ setup(
     install_requires=[
         'docopt==0.6.1',
         'requests==2.6.0',
-        'schedule==0.3.1'
+        'schedule==0.3.1',
+        'slackclient==0.15'
     ],
 
     # List additional groups of dependencies here (e.g. development

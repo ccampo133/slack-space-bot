@@ -1,4 +1,5 @@
 import logging
+from math import sin, cos, atan2, sqrt, radians
 
 import requests
 from spacebot.util.utils import field
@@ -33,3 +34,20 @@ def get_iss_text_and_attachments():
         .format(lat=lat, lon=lon)
     attachments = {"fields": fields, "image_url": image_url}
     return ":star: *Current Position of the ISS* :star:", attachments
+
+
+# Determines if the ISS is overhead by computing the great circle distance
+# between its latitude and longitude and a given latitude and longitude.
+def is_iss_overhead(lat, lon):
+    iss_data = get_iss_data()
+    lat1 = radians(lat)
+    lon1 = radians(lon)
+    lat2 = radians(iss_data["latitude"])
+    lon2 = radians(iss_data["longitude"])
+    delta_lon = lon2 - lon1
+    d = atan2(
+        sqrt((cos(lat2) * sin(delta_lon)) ** 2 + (cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(delta_lon)) ** 2),
+        sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(delta_lon))
+    # 6372.795 is the average great-circle radius of the Earth in km, from Wikipedia
+    iss_dist = 6372.795 * d
+    return iss_dist <= iss_data["footprint"] / 2

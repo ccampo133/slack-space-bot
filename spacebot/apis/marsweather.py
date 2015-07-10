@@ -1,6 +1,7 @@
 import logging
 
 import requests
+from spacebot.util.utils import field
 
 log = logging.getLogger(__name__)
 
@@ -56,7 +57,3 @@ def get_weather_text_and_attachments():
 
 def pressure_string(p_string):
     return "above average" if p_string == "Higher" else "below average"
-
-
-def field(name, value, short=True):
-    return {"title": name, "value": value, "short": short}

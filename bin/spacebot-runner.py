@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from spacebot.spacebot import main
+from spacebot.bot import main
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,5 @@
 """Usage:
-  spacebot (-c CHANNEL) (-t TOKEN) [-k KEY] [-d DATE] [-T TIME] [-f LOGFILE] [-l LEVEL]
+  spacebot (-c CHANNEL) (-t TOKEN) [-k KEY] [-t TIME] [-f LOGFILE] [-l LEVEL]
   spacebot (-h | --help)
 
   Options:
@@ -7,30 +7,32 @@
   -t TOKEN --token=TOKEN      Your Slack API token.
   -k --key=KEY                Your NASA API key (apply for one at https://data.nasa.gov/developer/external/planetary/#apply-for-an-api-key)
                               [default: DEMO_KEY].
-  -d --date=DATE              The date of the APOD you want to retrieve (format: YYYY-MM-dd) [default: today]
-  -T --time=TIME              The time of day to run (in 24 hour format HH:mm, e.g. 11:00). Ignoring
-                              this option will cause SpaceBot to run now, and only once.
+  -T --apod-time=TIME         The time of day to post automatically post APOD (in 24 hour format HH:mm, e.g. 11:00).
+                              [default: None]
   -f --file=LOGFILE           The file to output all logging info. [default: spacebot.log]
   -l --level=LEVEL            The logging level: DEBUG, INFO, WARNING, ERROR, or CRITICAL. [default: INFO]
   -h --help                   Show this screen.
 """
+import json
 import time
 import logging
 
-import schedule
+import re
 from docopt import docopt
+import schedule
+from slackclient import SlackClient
+from spacebot import consts
 from spacebot.apis import apod
 from spacebot.apis import marsweather
-from spacebot.slack import slackclient
+from spacebot.apis import iss
 
 
 def main():
     args = docopt(__doc__)
-    key = args["--key"]
-    token = args["--token"]
-    date = time.strftime("%Y-%m-%d") if args["--date"] == "today" else args["--date"]
     channel = args["--chan"]
-    run_time = args["--time"]
+    token = args["--token"]
+    key = args["--key"]
+    apod_time = args["--apod-time"]
     log_file = args["--file"]
     log_level = args["--level"]
 
@@ -42,15 +44,79 @@ def main():
                         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     logging.getLogger().addHandler(logging.StreamHandler())  # Add logger to stderr
 
-    if run_time is not None:
-        schedule.every().day.at(run_time).do(slackclient.send_message, token, channel,
-                                             *apod.get_apod_text_and_attachments(key, date))
-        schedule.every().day.at(run_time).do(slackclient.send_message, token, channel,
-                                             *marsweather.get_weather_text_and_attachments())
-        logging.info("SpaceBot successfully scheduled to run every day at %s", run_time)
-        while True:
-            schedule.run_pending()
-            time.sleep(1)
-    else:
-        slackclient.send_message(token, channel, *apod.get_apod_text_and_attachments(key, date))
-        slackclient.send_message(token, channel, *marsweather.get_weather_text_and_attachments())
+    # Start the bot
+    slack = SlackClient(token)
+    bot = SpaceBot(slack, channel, key, apod_time)
+    bot.run()
+
+
+class SpaceBot:
+    def __init__(self, slack_client, channel, nasa_api_key, cron_time):
+        self.log = logging.getLogger(__name__)
+        self.slack_client = slack_client
+        self.channel = channel
+        self.nasa_api_key = nasa_api_key
+        self.cron_time = cron_time
+
+    def run(self):
+        # Set up cron jobs
+        if self.cron_time:
+            # schedule.every().day.at(self.cron_time).do(self.send_message,
+            #                                            *marsweather.get_weather_text_and_attachments())
+            # schedule.every().day.at(self.cron_time).do(self.send_message,
+            #                                            *iss.get_iss_text_and_attachments())
+            schedule.every().day.at(self.cron_time).do(self.send_message,
+                                                       *apod.get_apod_text_and_attachments(self.nasa_api_key,
+                                                                                           time.strftime("%Y-%m-%d")))
+
+        # Check if the ISS is over-head every minute
+        def send_iss_message():
+            if iss.is_iss_overhead(28.42, 81.30):
+                self.send_message("The International Space Station is currently over-head!")
+
+        schedule.every().minute.do(send_iss_message)
+
+        # Initialize the WebSocket API connection
+        if self.slack_client.rtm_connect():
+            while True:
+                schedule.run_pending()
+                for event in self.slack_client.rtm_read():
+                    self.process(event)
+                time.sleep(0.5)
+        else:
+            self.log.error("Slack connection failed")
+
+    def process(self, event):
+        # Ignore events that aren't messages addressing SpaceBot
+        if event["type"] != "message" \
+                or event["channel"] != self.channel \
+                or not event["text"].lower().startswith(consts.SPACEBOT_USERNAME.lower()):
+            return
+
+        command = re.sub(consts.SPACEBOT_USERNAME.lower(), "", event["text"].lower()).lstrip()
+        self.log.info("Message: %s", str(event))
+        self.log.info("Command: %s", command)
+
+        if command.startswith("apod"):
+            apod_date = re.sub("apod", "", command).lstrip()
+            date = time.strftime("%Y-%m-%d") if not apod_date else apod_date
+            text, attachments = apod.get_apod_text_and_attachments(self.nasa_api_key, date)
+            self.send_message(text, attachments)
+        elif command == "mars weather":
+            text, attachments = marsweather.get_weather_text_and_attachments()
+            self.send_message(text, attachments)
+        elif command == "iss":
+            text, attachments = iss.get_iss_text_and_attachments()
+            self.send_message(text, attachments)
+        else:
+            user = json.loads(self.slack_client.api_call("users.info", user=event["user"]))["user"]
+            name = user["profile"]["first_name"]
+            self.send_message("I'm sorry {name}. I'm afraid I can't do that.".format(name=name))
+
+    def send_message(self, text, attachments=None):
+        self.slack_client.api_call("chat.postMessage",
+                                   username=consts.SPACEBOT_USERNAME,
+                                   icon_url=consts.SPACEBOT_ICON_URL,
+                                   channel=self.channel,
+                                   text=text,
+                                   attachments=json.dumps([attachments]))
