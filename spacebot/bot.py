@@ -82,6 +82,7 @@ class SpaceBot:
     def process(self, event):
         # Ignore events that aren't messages addressing SpaceBot
         if event["type"] != "message" \
+                or "subtype" in event \
                 or ("channel" in event and event["channel"] != self.channel) \
                 or ("text" in event and not event["text"].lower().startswith(consts.SPACEBOT_USERNAME.lower())):
             return
@@ -111,10 +112,12 @@ class SpaceBot:
             self.send_message(text, attachments)
         elif command == "help":
             self.send_help_message()
-        else:
+        elif command == "open the pod bay doors":
             user = json.loads(self.slack_client.api_call("users.info", user=event["user"]))["user"]
             name = user["profile"]["first_name"]
             self.send_message("I'm sorry {name}. I'm afraid I can't do that.".format(name=name))
+        else:
+            self.log.debug("Received unknown command %s", command)
 
     def send_message(self, text, attachments=None):
         self.slack_client.api_call("chat.postMessage",
