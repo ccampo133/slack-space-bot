@@ -71,11 +71,16 @@ class SpaceBot:
         # Initialize the WebSocket API connection
         if self.slack_client.rtm_connect():
             while True:
-                schedule.run_pending()
-                for event in self.slack_client.rtm_read():
-                    self.log.debug("Received event: %s", str(event))
-                    self.process(event)
-                time.sleep(0.5)
+                try:
+                    schedule.run_pending()
+                    for event in self.slack_client.rtm_read():
+                        self.log.debug("Received event: %s", str(event))
+                        self.process(event)
+                    time.sleep(0.5)
+                except Exception, e:
+                    self.log.error("Unexpected exception %s", e)
+                    self.send_message("Something killed me :(")
+                    sys.exit(1)
         else:
             self.log.error("Slack connection failed")
 
@@ -104,18 +109,20 @@ class SpaceBot:
                 date = time.strftime("%Y-%m-%d")
             text, attachments = apod.get_apod_text_and_attachments(self.nasa_api_key, date)
             self.send_message(text, attachments)
-        elif command == "mars weather":
+        elif "mars weather" in command:
             text, attachments = marsweather.get_weather_text_and_attachments()
             self.send_message(text, attachments)
-        elif command == "iss":
+        elif "iss" in command:
             text, attachments = iss.get_iss_text_and_attachments()
             self.send_message(text, attachments)
-        elif command == "help":
+        elif "help" in command:
             self.send_help_message()
-        elif command == "open the pod bay doors":
+        elif "open the pod bay doors" in command:
             user = json.loads(self.slack_client.api_call("users.info", user=event["user"]))["user"]
             name = user["profile"]["first_name"]
             self.send_message("I'm sorry {name}. I'm afraid I can't do that.".format(name=name))
+        elif "still alive" in command:
+            self.send_message("Yes")
         else:
             self.log.debug("Received unknown command %s", command)
 
