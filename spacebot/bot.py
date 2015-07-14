@@ -96,9 +96,10 @@ class SpaceBot:
         self.log.info("Message: %s", str(event))
         self.log.info("Command: %s", command)
 
-        if command.startswith("apod"):
-            apod_date = re.sub("apod", "", command).lstrip()
-            if apod_date:
+        if "apod" in command:
+            search = re.search("apod (\w+.*)", command)
+            if search:
+                apod_date = search.group(1)
                 try:
                     utils.validate_date(apod_date)
                 except ValueError:
@@ -113,7 +114,9 @@ class SpaceBot:
             text, attachments = marsweather.get_weather_text_and_attachments()
             self.send_message(text, attachments)
         elif "iss" in command:
-            text, attachments = iss.get_iss_text_and_attachments()
+            search = re.search("zoom (\d+)", command)
+            zoom = search.group(1) if search else iss.DEFAULT_ZOOM
+            text, attachments = iss.get_iss_text_and_attachments(zoom)
             self.send_message(text, attachments)
         elif "help" in command:
             self.send_help_message()
@@ -137,7 +140,8 @@ class SpaceBot:
     def send_help_message(self):
         text = "Available commands (case insensitive):\n\n" \
                "*{name} APOD [YYYY-MM-DD]:* Displays the APOD for the given date (optional; defaults to today's APOD)\n" \
-               "*{name} ISS:* Displays information about the current location of the International Space Station.\n" \
+               "*{name} ISS [zoom 1-21+]:* Displays information about the current location of the International Space " \
+               "Station. The `zoom` parameter specifies the Google Maps zoom, 1 being the most zoomed out (optional; defaults to 1)\n" \
                "*{name} Mars Weather:* Displays the current Martian weather report from the Curiosity rover\n" \
                "*{name} help:* Shows this.".format(name=consts.SPACEBOT_USERNAME)
         self.send_message(text)

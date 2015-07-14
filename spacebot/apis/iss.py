@@ -6,6 +6,9 @@ from spacebot.util.utils import field
 
 log = logging.getLogger(__name__)
 
+# Default Google Maps zoom level; values 1 - 21+
+# See: https://developers.google.com/maps/documentation/staticmaps/#Zoomlevels
+DEFAULT_ZOOM = 1
 
 # Gets the position of the ISS from https://api.wheretheiss.at/v1/satellites/25544
 def get_iss_data():
@@ -16,7 +19,7 @@ def get_iss_data():
     return response
 
 
-def get_iss_text_and_attachments():
+def get_iss_text_and_attachments(zoom):
     data = get_iss_data()
     fields = [
         field("Altitude", "{0} km".format(data["altitude"])),
@@ -30,8 +33,8 @@ def get_iss_text_and_attachments():
     ]
     lat = data["latitude"]
     lon = data["longitude"]
-    image_url = "https://maps.googleapis.com/maps/api/staticmap?markers={lat},{lon}&zoom=6&size=500x400" \
-        .format(lat=lat, lon=lon)
+    image_url = "https://maps.googleapis.com/maps/api/staticmap?markers={lat},{lon}&zoom={zoom}&size=500x400" \
+        .format(lat=lat, lon=lon, zoom=zoom)
     attachments = {"fields": fields, "image_url": image_url}
     return ":star: *Current Position of the ISS* :star:", attachments
 
