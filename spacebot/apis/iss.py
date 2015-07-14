@@ -19,7 +19,7 @@ def get_iss_data():
 def get_iss_text_and_attachments():
     data = get_iss_data()
     fields = [
-        field("Altitude", data["altitude"]),
+        field("Altitude", "{0} km".format(data["altitude"])),
         field("Linear Velocity", "{0} km/hr".format(data["velocity"])),
         field("Solar Latitude:", "{0} degrees".format(data["solar_lat"])),
         field("Solar Longitude", "{0} degrees".format(data["solar_lon"])),
