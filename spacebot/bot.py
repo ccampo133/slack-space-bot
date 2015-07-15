@@ -65,9 +65,9 @@ class SpaceBot:
     def run(self):
         # Set up cron jobs
         if self.cron_time is not None:
-            schedule.every().day.at(self.cron_time).do(self.send_message,
-                                                       *apod.get_apod_text_and_attachments(self.nasa_api_key,
-                                                                                           time.strftime("%Y-%m-%d")))
+            schedule.every().day.at(self.cron_time) \
+                .do(lambda: self.send_message(*apod.get_apod_text_and_attachments(self.nasa_api_key)))
+
         # Initialize the WebSocket API connection
         if self.slack_client.rtm_connect():
             while True:

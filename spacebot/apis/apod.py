@@ -1,4 +1,5 @@
 from datetime import datetime
+import time
 import logging
 
 import requests
@@ -20,7 +21,10 @@ def get_apod_data(api_key, date):
     return response
 
 
-def get_apod_text_and_attachments(api_key, date):
+def get_apod_text_and_attachments(api_key, date=None):
+    if not date:
+        date = time.strftime("%Y-%m-%d")
+
     apod_data = get_apod_data(api_key, date)
     # The APOD API still returns a 200 in the error case, so we need
     # to handle it based on the actual message response data.
