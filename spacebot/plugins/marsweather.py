@@ -57,3 +57,13 @@ def get_weather_text_and_attachments():
 
 def pressure_string(p_string):
     return "above average" if p_string == "Higher" else "below average"
+
+
+def process_event(bot, event):
+    if "mars weather" in event["text"].lower():
+        text, attachments = get_weather_text_and_attachments()
+        bot.send_message(text, attachments)
+
+
+def get_help():
+    return "*{name} Mars Weather:* Displays the current Martian weather report from the Curiosity rover."

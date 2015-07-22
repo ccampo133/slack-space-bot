@@ -1,6 +1,7 @@
 import logging
 from math import sin, cos, atan2, sqrt, radians
 
+import re
 import requests
 from spacebot.util.utils import field
 
@@ -55,3 +56,19 @@ def is_iss_overhead(lat, lon):
     # 6372.795 is the average great-circle radius of the Earth in km, from Wikipedia
     iss_dist = 6372.795 * d
     return iss_dist <= iss_data["footprint"] / 2
+
+
+def process_event(bot, event):
+    command = event["text"].lower()
+    if "iss" in command:
+        search = re.search("zoom (\d+)", command)
+        zoom = search.group(1) if search else DEFAULT_ZOOM
+        text, attachments = get_iss_text_and_attachments(zoom)
+        bot.send_message(text, attachments)
+
+
+def get_help():
+    return "*{name} ISS [zoom 1-21+]:* Displays information about the " \
+           "current location of the International Space Station. The " \
+           "`zoom` parameter specifies the Google Maps zoom, 1 being " \
+           "the most zoomed out (optional; defaults to 1)."

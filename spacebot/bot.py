@@ -12,20 +12,18 @@
   -l --level=LEVEL            The logging level: DEBUG, INFO, WARNING, ERROR, or CRITICAL. [default: INFO]
   -h --help                   Show this screen.
 """
+import glob
 import json
 import time
 import logging
 import sys
 
-import re
+import os
 from docopt import docopt
 import schedule
 from slackclient import SlackClient
 from spacebot import consts
-from spacebot.apis import apod
-from spacebot.apis import marsweather
-from spacebot.apis import iss
-from spacebot.util import utils
+from spacebot.plugins import apod
 
 
 def main():
@@ -61,6 +59,7 @@ class SpaceBot:
         self.channel = channel
         self.nasa_api_key = nasa_api_key
         self.cron_time = cron_time
+        self.plugins = self._load_plugins()
 
     def run(self):
         # Set up cron jobs
@@ -75,7 +74,7 @@ class SpaceBot:
                     schedule.run_pending()
                     for event in self.slack_client.rtm_read():
                         self.log.debug("Received event: %s", str(event))
-                        self.process(event)
+                        self._process_event(event)
                     time.sleep(0.5)
                 except Exception, e:
                     self.log.error("Unexpected exception %s", e)
@@ -83,51 +82,6 @@ class SpaceBot:
                     sys.exit(1)
         else:
             self.log.error("Slack connection failed")
-
-    def process(self, event):
-        # Ignore events that aren't messages addressing SpaceBot
-        if event["type"] != "message" \
-                or "subtype" in event \
-                or ("channel" in event and event["channel"] != self.channel) \
-                or ("text" in event and not event["text"].lower().startswith(consts.SPACEBOT_USERNAME.lower())):
-            return
-
-        command = re.sub(consts.SPACEBOT_USERNAME.lower(), "", event["text"].lower()).lstrip()
-        self.log.info("Message: %s", str(event))
-        self.log.info("Command: %s", command)
-
-        if "apod" in command:
-            search = re.search("apod (\w+.*)", command)
-            if search:
-                apod_date = search.group(1)
-                try:
-                    utils.validate_date(apod_date)
-                except ValueError:
-                    self.send_message("Incorrect date format. Should be YYYY-MM-DD")
-                    return
-                date = apod_date
-            else:
-                date = time.strftime("%Y-%m-%d")
-            text, attachments = apod.get_apod_text_and_attachments(self.nasa_api_key, date)
-            self.send_message(text, attachments)
-        elif "mars weather" in command:
-            text, attachments = marsweather.get_weather_text_and_attachments()
-            self.send_message(text, attachments)
-        elif "iss" in command:
-            search = re.search("zoom (\d+)", command)
-            zoom = search.group(1) if search else iss.DEFAULT_ZOOM
-            text, attachments = iss.get_iss_text_and_attachments(zoom)
-            self.send_message(text, attachments)
-        elif "help" in command:
-            self.send_help_message()
-        elif "open the pod bay doors" in command:
-            user = json.loads(self.slack_client.api_call("users.info", user=event["user"]))["user"]
-            name = user["profile"]["first_name"]
-            self.send_message("I'm sorry {name}. I'm afraid I can't do that.".format(name=name))
-        elif "still alive" in command:
-            self.send_message("Yes")
-        else:
-            self.log.debug("Received unknown command %s", command)
 
     def send_message(self, text, attachments=None):
         self.slack_client.api_call("chat.postMessage",
@@ -137,11 +91,35 @@ class SpaceBot:
                                    text=text,
                                    attachments=json.dumps([attachments]))
 
-    def send_help_message(self):
-        text = "Available commands (case insensitive):\n\n" \
-               "*{name} APOD [YYYY-MM-DD]:* Displays the APOD for the given date (optional; defaults to today's APOD)\n" \
-               "*{name} ISS [zoom 1-21+]:* Displays information about the current location of the International Space " \
-               "Station. The `zoom` parameter specifies the Google Maps zoom, 1 being the most zoomed out (optional; defaults to 1)\n" \
-               "*{name} Mars Weather:* Displays the current Martian weather report from the Curiosity rover\n" \
-               "*{name} help:* Shows this.".format(name=consts.SPACEBOT_USERNAME)
-        self.send_message(text)
+    def _load_plugins(self):
+        module_file_names = glob.glob(os.path.dirname(__file__) + "/plugins/*.py")
+        module_names = [os.path.basename(f)[:-3] for f in module_file_names[1:]]
+        plugins_package = __import__("spacebot.plugins", fromlist=module_names)
+        return map(lambda name: getattr(plugins_package, name), module_names)
+
+    def _process_event(self, event):
+        # Ignore events that aren't messages addressing SpaceBot
+        if event["type"] != "message" \
+                or "subtype" in event \
+                or ("channel" in event and event["channel"] != self.channel) \
+                or ("text" in event and not event["text"].lower().startswith(consts.SPACEBOT_USERNAME.lower())):
+            return
+
+        self.log.info("Received message: %s", str(event))
+        if "help" in event["text"].lower():
+            help_msgs = "\n".join([plugin.get_help() for plugin in self.plugins if hasattr(plugin, "get_help")])
+            text = ("Available commands (case insensitive):\n\n*{name} help: Shows this." + help_msgs) \
+                .format(name=consts.SPACEBOT_USERNAME)
+            self.send_message(text)
+        elif "open the pod bay doors" in event["text"].lower():
+            user = json.loads(self.slack_client.api_call("users.info", user=event["user"]))["user"]
+            name = user["profile"]["first_name"]
+            self.send_message("I'm sorry {name}. I'm afraid I can't do that.".format(name=name))
+        elif "still alive" in event["text"].lower():
+            self.send_message("Yes")
+        else:
+            for plugin in self.plugins:
+                try:
+                    plugin.process_event(self, event)
+                except AttributeError:
+                    pass

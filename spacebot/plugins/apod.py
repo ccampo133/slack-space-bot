@@ -2,7 +2,9 @@ from datetime import datetime
 import time
 import logging
 
+import re
 import requests
+from spacebot.util import utils
 
 log = logging.getLogger(__name__)
 APOD_BASE_URL = "http://apod.nasa.gov/"
@@ -43,3 +45,25 @@ def get_apod_text_and_attachments(api_key, date=None):
     }
     msg_text = "Astronomy Picture of the Day - " + datetime.strptime(date, "%Y-%m-%d").strftime("%a %B %d, %Y")
     return msg_text, attachments
+
+
+def process_event(bot, event):
+    command = event["text"].lower()
+    if "apod" in command:
+        search = re.search("apod (\w+.*)", command)
+        if search:
+            apod_date = search.group(1)
+            try:
+                utils.validate_date(apod_date)
+            except ValueError:
+                bot.send_message("Incorrect date format. Should be YYYY-MM-DD")
+                return
+            date = apod_date
+        else:
+            date = time.strftime("%Y-%m-%d")
+        text, attachments = get_apod_text_and_attachments(bot.nasa_api_key, date)
+        bot.send_message(text, attachments)
+
+
+def get_help():
+    return "*{name} APOD [YYYY-MM-DD]:* Displays the APOD for the given date (optional; defaults to today's APOD)."
