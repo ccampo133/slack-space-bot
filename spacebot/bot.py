@@ -98,6 +98,10 @@ class SpaceBot:
         return map(lambda name: getattr(plugins_package, name), module_names)
 
     def _process_event(self, event):
+        # For whatever reason, Slack sends empty events, so we need to ignore them
+        if not event:
+            return
+
         # Ignore events that aren't messages addressing SpaceBot
         if event["type"] != "message" \
                 or "subtype" in event \
