@@ -18,7 +18,7 @@ setup(
     author='Chris Campo',
     author_email='ccampo.progs@gmail.com',
     license='MIT',
-    packages=['spacebot', 'spacebot.apis', 'spacebot.util'],
+    packages=['spacebot', 'spacebot.plugins', 'spacebot.util'],
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
