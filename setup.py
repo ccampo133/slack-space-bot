@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='slack-spacebot',
-    version='0.4.1',
+    version='0.4.2',
     description='A Slack bot that posts cool stuff about space.',
     long_description=long_description,
     keywords='slack bot space spacebot',

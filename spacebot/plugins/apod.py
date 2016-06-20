@@ -16,7 +16,7 @@ AUTHOR_ICON = "https://pbs.twimg.com/profile_images/19829782/apod_normal.png"
 
 # Gets the latest APOD using the NASA web API from https://api.nasa.gov/
 def get_apod_data(api_key, date):
-    r = requests.get("https://api.data.gov/nasa/planetary/apod", params={"api_key": api_key, "date": date})
+    r = requests.get("https://api.nasa.gov/planetary/apod", params={"api_key": api_key, "date": date})
     assert r.status_code == 200
     response = r.json()
     log.debug("APOD response: %s", response)
